@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GameMaster Mini Games</title>
 
-  <!-- Telegram Mini Apps API (если открыто внутри Telegram) -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script> <!-- 5 -->
+  <!-- Telegram WebApp (если открыто внутри Telegram) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
     :root{
@@ -53,6 +53,7 @@
     .btn.secondary{ background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04)); }
     .btn.danger{ background: linear-gradient(180deg, rgba(255,106,138,.18), rgba(255,106,138,.06)); }
     .btn:active{transform: translateY(1px)}
+    .btn:disabled{opacity:.55; cursor:not-allowed}
     .sep{height:1px; background:rgba(255,255,255,.08); margin:12px 0}
     input{
       width:100%;
@@ -105,6 +106,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <div class="top">
@@ -116,9 +118,10 @@
     </div>
 
     <div class="grid">
+      <!-- HOME -->
       <div class="card" id="viewHome">
         <h1>Мини-игры (1 игрок)</h1>
-        <p class="muted">Без онлайна, без мультиплеера. Рекорды сохраняются на этом устройстве.</p>
+        <p class="muted">Игры работают без входа. Вход — только по желанию.</p>
 
         <div class="sep"></div>
 
@@ -126,6 +129,32 @@
         <div class="grid2" id="recordsBox"></div>
         <div class="row" style="margin-top:10px">
           <button class="btn danger" id="clearRecords">Сбросить рекорды</button>
+        </div>
+
+        <div class="sep"></div>
+
+        <h2>Профиль (вход по желанию)</h2>
+        <p class="muted small">Google/iCloud — через Firebase (если настроишь). В Telegram просто покажем имя, если открыл внутри Telegram.</p>
+
+        <div class="card2">
+          <div class="row" style="justify-content:space-between; align-items:center">
+            <div>
+              <div class="small muted">Статус</div>
+              <div id="authStatus" style="font-weight:900; font-size:18px">Гость</div>
+              <div class="small muted" id="authSub">—</div>
+            </div>
+            <div class="row">
+              <button class="btn" id="btnGoogle">Войти через Google</button>
+              <button class="btn secondary" id="btnApple">Войти через iCloud</button>
+              <a class="btn secondary" href="https://t.me/Gamemasterbot_2bot" target="_blank" rel="noreferrer">Войти через Telegram</a>
+              <button class="btn danger" id="btnLogout">Выйти</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <a class="btn secondary" href="https://github.com/kadyrkhanmukhammedzhan-blip/tg-games-site/issues" target="_blank" rel="noreferrer">Отзывы</a>
+          <a class="btn" href="https://github.com/kadyrkhanmukhammedzhan-blip/tg-games-site/issues/new" target="_blank" rel="noreferrer">Оставить отзыв</a>
         </div>
 
         <div class="sep"></div>
@@ -145,6 +174,7 @@
         </div>
       </div>
 
+      <!-- GAME -->
       <div class="card hidden" id="viewGame">
         <div class="row" style="justify-content:space-between">
           <div class="row" style="gap:8px; flex-wrap:wrap">
@@ -159,9 +189,9 @@
       </div>
 
       <div class="card2">
-        <h2>Telegram WebApp</h2>
+        <h2>Подсказка</h2>
         <div class="small muted">
-          Если открыть страницу внутри Telegram Mini App — имя подтянется автоматически, и интерфейс подстроится под тему. 6
+          Если откроешь сайт внутри Telegram — сверху появится TG-имя (если доступно).
         </div>
       </div>
     </div>
@@ -170,12 +200,12 @@
   <div class="toast" id="toast"></div>
 
 <script>
-/* ---------- Telegram adapt ---------- */
+/* ===== Telegram adapt (только для отображения имени и темы) ===== */
 (function(){
   const tg = window.Telegram?.WebApp;
   if(!tg) return;
   try{
-    tg.expand?.(); // удобнее во весь экран 7
+    tg.expand?.();
     const u = tg.initDataUnsafe?.user;
     if(u){
       const name = u.username ? "@"+u.username : (u.first_name || "TG Player");
@@ -183,7 +213,7 @@
     } else {
       document.getElementById("whoPill").textContent = "Telegram WebApp";
     }
-    // цвета темы (если есть)
+
     const tp = tg.themeParams || {};
     const root = document.documentElement;
     if(tp.bg_color) root.style.setProperty("--bg", tp.bg_color);
@@ -193,7 +223,7 @@
   }catch{}
 })();
 
-/* ---------- Helpers ---------- */
+/* ===== Helpers ===== */
 const $ = (s, el=document) => el.querySelector(s);
 const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
 
@@ -205,16 +235,15 @@ function toast(msg){
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1500);
 }
-function n(v){ return Number.isFinite(v) ? v : null; }
 
-/* ---------- Records (localStorage) ---------- */
+/* ===== Records (localStorage) ===== */
 const REC_KEY = "gm_records_v1";
 const defaultRec = {
-  reaction_best_ms: null, // меньше = лучше
-  guess_best_tries: null, // меньше = лучше
-  math_best_score: null,  // больше = лучше
-  clicker_best: null,     // больше = лучше
-  memory_best_moves: null // меньше = лучше
+  reaction_best_ms: null,
+  guess_best_tries: null,
+  math_best_score: null,
+  clicker_best: null,
+  memory_best_moves: null
 };
 function loadRec(){
   try{
@@ -232,7 +261,7 @@ function renderRec(){
     <div class="rec"><div class="small">🎯 Угадай число (минимум)</div><div class="big">${fmt(r.guess_best_tries," попыток")}</div></div>
     <div class="rec"><div class="small">🧠 Математика (макс.)</div><div class="big">${fmt(r.math_best_score,"")}</div></div>
     <div class="rec"><div class="small">🖱️ Кликер 10с (макс.)</div><div class="big">${fmt(r.clicker_best,"")}</div></div>
-    <div class="rec"><div class="small">🧩 Память (минимум ходов)</div><div class="big">${fmt(r.memory_best_moves,"")}</div></div>
+    <div class="rec"><div class="small">🧩 Память (мин. ходов)</div><div class="big">${fmt(r.memory_best_moves,"")}</div></div>
   `;
 }
 $("#clearRecords").onclick = () => {
@@ -241,7 +270,7 @@ $("#clearRecords").onclick = () => {
   toast("Рекорды сброшены");
 };
 
-/* ---------- Navigation ---------- */
+/* ===== Navigation ===== */
 const state = { gameId: "reaction" };
 
 function showHome(){
@@ -273,7 +302,7 @@ function mountGame(id){
   root.innerHTML = `<p class="muted">Игра не найдена.</p>`;
 }
 
-/* ---------- Game: Reaction ---------- */
+/* ===== Game: Reaction ===== */
 function mountReaction(root){
   $("#badgeGame").textContent = "⚡ Реакция";
   let stage="idle", startAt=0, timer=null;
@@ -339,7 +368,7 @@ function mountReaction(root){
   reset();
 }
 
-/* ---------- Game: Guess ---------- */
+/* ===== Game: Guess ===== */
 function mountGuess(root){
   $("#badgeGame").textContent = "🎯 Угадай число";
   let secret=1, tries=0;
@@ -391,14 +420,14 @@ function mountGuess(root){
   newGame();
 }
 
-/* ---------- Game: Math ---------- */
+/* ===== Game: Math ===== */
 function mountMath(root){
   $("#badgeGame").textContent = "🧠 Математика";
   let a=0,b=0,op="+",ans=0, score=0, timeLeft=30, timer=null;
 
   root.innerHTML = `
     <h2>🧠 Математика на скорость</h2>
-    <p class="muted">30 секунд. Верно → +1. Неверно → покажу правильный.</p>
+    <p class="muted">30 секунд. Верно → +1.</p>
     <div class="card2" style="margin-top:12px">
       <div class="row" style="justify-content:space-between">
         <div class="badge">Очки: <span id="mScore">0</span></div>
@@ -463,7 +492,7 @@ function mountMath(root){
   gen();
 }
 
-/* ---------- Game: Clicker 10s ---------- */
+/* ===== Game: Clicker 10s ===== */
 function mountClicker(root){
   $("#badgeGame").textContent = "🖱️ Кликер 10с";
   let score=0, timeLeft=10, timer=null, running=false;
@@ -515,12 +544,12 @@ function mountClicker(root){
   $("#cStop").onclick=end;
 }
 
-/* ---------- Game: Memory 4x4 ---------- */
+/* ===== Game: Memory 4x4 ===== */
 function mountMemory(root){
   $("#badgeGame").textContent = "🧩 Память 4×4";
-  const icons = ["🍒","🍋","🍇","🍉","🍓","🥝","🍑","🍍"]; // 8 пар
+  const icons = ["🍒","🍋","🍇","🍉","🍓","🥝","🍑","🍍"];
   let deck = [...icons, ...icons].sort(()=>Math.random()-0.5);
-  let open = []; // indices
+  let open = [];
   let matched = new Set();
   let moves = 0;
   let lock = false;
@@ -604,5 +633,97 @@ renderRec();
 showHome();
 setActiveChip();
 </script>
+
+<!-- ===== OPTIONAL AUTH (Google / Apple) ===== -->
+<script type="module">
+  // Telegram user (для текста)
+  const tg = window.Telegram?.WebApp;
+  const tgUser = tg?.initDataUnsafe?.user;
+
+  // UI elements
+  const elStatus = document.getElementById("authStatus");
+  const elSub = document.getElementById("authSub");
+  const btnGoogle = document.getElementById("btnGoogle");
+  const btnApple = document.getElementById("btnApple");
+  const btnLogout = document.getElementById("btnLogout");
+
+  function setUI({ title, sub, loggedIn }) {
+    elStatus.textContent = title;
+    elSub.textContent = sub || "—";
+    btnLogout.style.display = loggedIn ? "" : "none";
+  }
+
+  // Базовый статус (до Firebase)
+  if (tgUser?.id) {
+    const name = tgUser.username ? "@"+tgUser.username : (tgUser.first_name || "Telegram user");
+    setUI({ title: `Telegram: ${name}`, sub: "Открыто внутри Telegram", loggedIn: false });
+  } else {
+    setUI({ title: "Гость", sub: "Можно войти (по желанию)", loggedIn: false });
+  }
+
+  // ======= ВСТАВЬ СЮДА firebaseConfig (когда захочешь) =======
+  const firebaseConfig = {
+    apiKey: "PASTE_HERE",
+    authDomain: "PASTE_HERE",
+    projectId: "PASTE_HERE",
+    appId: "PASTE_HERE"
+  };
+  const hasConfig = firebaseConfig.apiKey !== "PASTE_HERE";
+
+  if (!hasConfig) {
+    btnGoogle.disabled = true;
+    btnApple.disabled = true;
+    btnGoogle.textContent = "Google (настрой Firebase)";
+    btnApple.textContent = "iCloud (настрой Firebase)";
+    btnLogout.style.display = "none";
+    // Всё. Сайт работает, просто без входа.
+  } else {
+    // Firebase imports (работают только если config вставлен)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider,
+      OAuthProvider, signOut
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const name = user.displayName || user.email || "Пользователь";
+        setUI({ title: `Вход: ${name}`, sub: user.uid, loggedIn: true });
+      } else {
+        if (tgUser?.id) {
+          const name = tgUser.username ? "@"+tgUser.username : (tgUser.first_name || "Telegram user");
+          setUI({ title: `Telegram: ${name}`, sub: "Открыто внутри Telegram", loggedIn: false });
+        } else {
+          setUI({ title: "Гость", sub: "Можно войти (по желанию)", loggedIn: false });
+        }
+      }
+    });
+
+    btnGoogle.onclick = async () => {
+      try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+      } catch (e) {
+        alert("Ошибка входа Google: " + (e?.message || e));
+      }
+    };
+
+    btnApple.onclick = async () => {
+      try {
+        const provider = new OAuthProvider("apple.com");
+        await signInWithPopup(auth, provider);
+      } catch (e) {
+        alert("Ошибка входа iCloud: " + (e?.message || e));
+      }
+    };
+
+    btnLogout.onclick = async () => {
+      try { await signOut(auth); } catch {}
+    };
+  }
+</script>
 </body>
-</html>
+  </html>
