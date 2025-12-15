@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GameMaster Mini Games</title>
+
+  <!-- Telegram Mini Apps API (если открыто внутри Telegram) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script> <!-- 5 -->
+
+  <style>
+    :root{
+      --bg:#0b1220; --card:#121a2b; --card2:#0f1728;
+      --text:#e7eefc; --muted:#9fb2d6; --acc:#6aa9ff; --bad:#ff6a8a; --ok:#4cffb4;
+      --border: rgba(255,255,255,.10);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 700px at 15% 0%, #182a55 0%, var(--bg) 55%);
+    }
+    a{color:inherit; text-decoration:none}
+    .wrap{max-width:980px; margin:0 auto; padding:18px 14px 70px}
+    .top{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:14px 16px; border:1px solid var(--border); border-radius:18px;
+      background: rgba(18,26,43,.75); backdrop-filter: blur(8px);
+    }
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800}
+    .brand .dot{width:10px; height:10px; border-radius:50%; background:var(--acc); box-shadow:0 0 24px rgba(106,169,255,.7)}
+    .pill{font-size:12px; color:var(--muted); border:1px solid var(--border); padding:6px 10px; border-radius:999px}
+    .grid{display:grid; grid-template-columns: 1fr; gap:12px; margin-top:12px}
+    .card{
+      padding:16px; border-radius:18px; border:1px solid var(--border);
+      background: rgba(18,26,43,.75);
+    }
+    .card2{
+      padding:16px; border-radius:18px; border:1px solid var(--border);
+      background: rgba(15,23,40,.75);
+    }
+    h1{margin:6px 0 10px; font-size:30px; line-height:1.1}
+    h2{margin:0 0 10px; font-size:18px}
+    p{margin:0 0 10px; color:var(--muted)}
+    .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      padding:10px 14px; border-radius:12px; cursor:pointer; user-select:none;
+      border:1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(106,169,255,.18), rgba(106,169,255,.06));
+      color:var(--text);
+    }
+    .btn.secondary{ background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04)); }
+    .btn.danger{ background: linear-gradient(180deg, rgba(255,106,138,.18), rgba(255,106,138,.06)); }
+    .btn:active{transform: translateY(1px)}
+    .sep{height:1px; background:rgba(255,255,255,.08); margin:12px 0}
+    input{
+      width:100%;
+      padding:10px 12px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(9,14,24,.45); color:var(--text);
+      outline:none;
+    }
+    .muted{color:var(--muted)}
+    .small{font-size:12px; color:var(--muted)}
+    .chips{display:flex; gap:8px; flex-wrap:wrap}
+    .chip{
+      padding:7px 10px; border-radius:999px; border:1px solid var(--border);
+      background: rgba(255,255,255,.04); color:var(--muted); cursor:pointer;
+      user-select:none;
+    }
+    .chip.active{border-color: rgba(106,169,255,.65); color:var(--text); background: rgba(106,169,255,.10)}
+    .hidden{display:none !important}
+    .badge{display:inline-flex; padding:4px 8px; border-radius:999px; border:1px solid var(--border); font-size:12px; color:var(--muted)}
+    .center{display:flex; align-items:center; justify-content:center}
+    .big{font-size:34px; font-weight:900; letter-spacing:.3px}
+    .toast{
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+      padding:10px 14px; border-radius:999px;
+      border:1px solid var(--border); background: rgba(18,26,43,.92);
+      color:var(--text); box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      opacity:0; pointer-events:none; transition: opacity .15s ease;
+      max-width: calc(100vw - 28px);
+      white-space: nowrap; overflow:hidden; text-overflow: ellipsis;
+    }
+    .toast.show{opacity:1}
+    .good{color:var(--ok)}
+    .bad{color:var(--bad)}
+    .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    .rec{
+      padding:10px 12px; border-radius:14px; border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+    }
+    .mem{
+      display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; max-width:520px;
+    }
+    .cardtile{
+      aspect-ratio: 1/1;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      display:flex; align-items:center; justify-content:center;
+      font-size:28px; font-weight:900;
+      user-select:none; cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand"><span class="dot"></span> GameMaster Mini Games</div>
+      <div class="row">
+        <span class="pill" id="whoPill">Solo • Offline</span>
+        <a class="btn secondary" href="https://t.me/Gamemasterbot_2bot" target="_blank" rel="noreferrer">Открыть бота</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card" id="viewHome">
+        <h1>Мини-игры (1 игрок)</h1>
+        <p class="muted">Без онлайна, без мультиплеера. Рекорды сохраняются на этом устройстве.</p>
+
+        <div class="sep"></div>
+
+        <h2>Рекорды</h2>
+        <div class="grid2" id="recordsBox"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn danger" id="clearRecords">Сбросить рекорды</button>
+        </div>
+
+        <div class="sep"></div>
+
+        <h2>Выбор игры</h2>
+        <div class="chips" id="gameChips">
+          <div class="chip active" data-id="reaction">⚡ Реакция</div>
+          <div class="chip" data-id="guess">🎯 Угадай число</div>
+          <div class="chip" data-id="math">🧠 Математика</div>
+          <div class="chip" data-id="clicker">🖱️ Кликер 10с</div>
+          <div class="chip" data-id="memory">🧩 Память 4×4</div>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="startBtn">Запустить</button>
+          <button class="btn secondary" id="resetBtn">Сброс выбора</button>
+        </div>
+      </div>
+
+      <div class="card hidden" id="viewGame">
+        <div class="row" style="justify-content:space-between">
+          <div class="row" style="gap:8px; flex-wrap:wrap">
+            <span class="badge" id="badgeGame">Игра</span>
+          </div>
+          <div class="row">
+            <button class="btn secondary" id="backBtn">← Назад</button>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <div id="gameRoot"></div>
+      </div>
+
+      <div class="card2">
+        <h2>Telegram WebApp</h2>
+        <div class="small muted">
+          Если открыть страницу внутри Telegram Mini App — имя подтянется автоматически, и интерфейс подстроится под тему. 6
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ---------- Telegram adapt ---------- */
+(function(){
+  const tg = window.Telegram?.WebApp;
+  if(!tg) return;
+  try{
+    tg.expand?.(); // удобнее во весь экран 7
+    const u = tg.initDataUnsafe?.user;
+    if(u){
+      const name = u.username ? "@"+u.username : (u.first_name || "TG Player");
+      document.getElementById("whoPill").textContent = `TG: ${name}`;
+    } else {
+      document.getElementById("whoPill").textContent = "Telegram WebApp";
+    }
+    // цвета темы (если есть)
+    const tp = tg.themeParams || {};
+    const root = document.documentElement;
+    if(tp.bg_color) root.style.setProperty("--bg", tp.bg_color);
+    if(tp.text_color) root.style.setProperty("--text", tp.text_color);
+    if(tp.hint_color) root.style.setProperty("--muted", tp.hint_color);
+    if(tp.button_color) root.style.setProperty("--acc", tp.button_color);
+  }catch{}
+})();
+
+/* ---------- Helpers ---------- */
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+
+const toastEl = $("#toast");
+let toastTimer = null;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1500);
+}
+function n(v){ return Number.isFinite(v) ? v : null; }
+
+/* ---------- Records (localStorage) ---------- */
+const REC_KEY = "gm_records_v1";
+const defaultRec = {
+  reaction_best_ms: null, // меньше = лучше
+  guess_best_tries: null, // меньше = лучше
+  math_best_score: null,  // больше = лучше
+  clicker_best: null,     // больше = лучше
+  memory_best_moves: null // меньше = лучше
+};
+function loadRec(){
+  try{
+    const x = JSON.parse(localStorage.getItem(REC_KEY) || "null");
+    return {...defaultRec, ...(x||{})};
+  }catch{ return {...defaultRec}; }
+}
+function saveRec(rec){ localStorage.setItem(REC_KEY, JSON.stringify(rec)); }
+function renderRec(){
+  const r = loadRec();
+  const box = $("#recordsBox");
+  const fmt = (v, suf="") => (v===null || v===undefined) ? "—" : (String(v)+suf);
+  box.innerHTML = `
+    <div class="rec"><div class="small">⚡ Реакция (лучшее)</div><div class="big">${fmt(r.reaction_best_ms," мс")}</div></div>
+    <div class="rec"><div class="small">🎯 Угадай число (минимум)</div><div class="big">${fmt(r.guess_best_tries," попыток")}</div></div>
+    <div class="rec"><div class="small">🧠 Математика (макс.)</div><div class="big">${fmt(r.math_best_score,"")}</div></div>
+    <div class="rec"><div class="small">🖱️ Кликер 10с (макс.)</div><div class="big">${fmt(r.clicker_best,"")}</div></div>
+    <div class="rec"><div class="small">🧩 Память (минимум ходов)</div><div class="big">${fmt(r.memory_best_moves,"")}</div></div>
+  `;
+}
+$("#clearRecords").onclick = () => {
+  localStorage.removeItem(REC_KEY);
+  renderRec();
+  toast("Рекорды сброшены");
+};
+
+/* ---------- Navigation ---------- */
+const state = { gameId: "reaction" };
+
+function showHome(){
+  $("#viewHome").classList.remove("hidden");
+  $("#viewGame").classList.add("hidden");
+  $("#gameRoot").innerHTML = "";
+}
+function showGame(){
+  $("#viewHome").classList.add("hidden");
+  $("#viewGame").classList.remove("hidden");
+}
+function setActiveChip(){
+  $$("#gameChips .chip").forEach(ch => ch.classList.toggle("active", ch.dataset.id === state.gameId));
+}
+$$("#gameChips .chip").forEach(ch => ch.onclick = () => { state.gameId = ch.dataset.id; setActiveChip(); });
+
+$("#resetBtn").onclick = () => { state.gameId="reaction"; setActiveChip(); toast("Сброшено"); };
+$("#backBtn").onclick = showHome;
+$("#startBtn").onclick = () => { showGame(); mountGame(state.gameId); };
+
+function mountGame(id){
+  const root = $("#gameRoot");
+  root.innerHTML = "";
+  if(id === "reaction") return mountReaction(root);
+  if(id === "guess") return mountGuess(root);
+  if(id === "math") return mountMath(root);
+  if(id === "clicker") return mountClicker(root);
+  if(id === "memory") return mountMemory(root);
+  root.innerHTML = `<p class="muted">Игра не найдена.</p>`;
+}
+
+/* ---------- Game: Reaction ---------- */
+function mountReaction(root){
+  $("#badgeGame").textContent = "⚡ Реакция";
+  let stage="idle", startAt=0, timer=null;
+
+  root.innerHTML = `
+    <h2>⚡ Реакция</h2>
+    <p class="muted">Нажми старт → жди зелёный сигнал → кликни быстро.</p>
+    <div class="card2" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between">
+        <button class="btn" id="rStart">Старт</button>
+        <button class="btn secondary" id="rReset">Сброс</button>
+      </div>
+      <div style="margin-top:12px">
+        <div id="rBox" class="center" style="height:180px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);font-size:18px;font-weight:900;user-select:none;cursor:pointer;">
+          Нажми «Старт»
+        </div>
+      </div>
+      <div class="small" id="rResult" style="margin-top:10px"></div>
+    </div>
+  `;
+  const box=$("#rBox"), result=$("#rResult");
+
+  function setBox(text, mode){
+    box.textContent=text;
+    if(mode==="go"){ box.style.background="rgba(76,255,180,.12)"; box.style.borderColor="rgba(76,255,180,.35)"; }
+    else if(mode==="bad"){ box.style.background="rgba(255,106,138,.12)"; box.style.borderColor="rgba(255,106,138,.35)"; }
+    else { box.style.background="rgba(255,255,255,.04)"; box.style.borderColor="rgba(255,255,255,.12)"; }
+  }
+  function reset(){
+    stage="idle"; clearTimeout(timer); timer=null; startAt=0;
+    result.textContent=""; setBox("Нажми «Старт»","wait");
+  }
+  function start(){
+    reset(); stage="waiting"; setBox("Жди…","wait");
+    timer=setTimeout(()=>{ stage="go"; startAt=performance.now(); setBox("ЖМИ!","go"); }, 900 + Math.random()*2200);
+  }
+  $("#rStart").onclick=start;
+  $("#rReset").onclick=reset;
+
+  box.onclick=()=>{
+    if(stage==="idle"){ toast("Нажми «Старт»"); return; }
+    if(stage==="waiting"){
+      stage="done"; clearTimeout(timer); timer=null;
+      setBox("Слишком рано 😅","bad");
+      result.innerHTML=`<span class="bad">Рано!</span> Попробуй ещё раз.`;
+      return;
+    }
+    if(stage==="go"){
+      stage="done";
+      const ms=Math.round(performance.now()-startAt);
+      setBox(`Время: ${ms} мс`,"go");
+      let rec=loadRec();
+      if(rec.reaction_best_ms===null || ms < rec.reaction_best_ms){
+        rec.reaction_best_ms = ms; saveRec(rec); renderRec();
+        result.innerHTML = `<span class="good">${ms} мс</span> — новый рекорд!`;
+      } else {
+        result.innerHTML = `<span class="good">${ms} мс</span>`;
+      }
+      return;
+    }
+    if(stage==="done"){ start(); }
+  };
+  reset();
+}
+
+/* ---------- Game: Guess ---------- */
+function mountGuess(root){
+  $("#badgeGame").textContent = "🎯 Угадай число";
+  let secret=1, tries=0;
+
+  root.innerHTML = `
+    <h2>🎯 Угадай число</h2>
+    <p class="muted">Я загадал 1..100. Вводи число — скажу больше/меньше.</p>
+    <div class="card2" style="margin-top:12px">
+      <div class="row">
+        <input id="gInp" type="number" min="1" max="100" placeholder="1..100" style="flex:1; min-width:140px" />
+        <button class="btn" id="gTry">Проверить</button>
+        <button class="btn secondary" id="gNew">Новая</button>
+      </div>
+      <div class="sep"></div>
+      <div class="big" id="gHint">🤫</div>
+      <div class="small" id="gInfo" style="margin-top:10px"></div>
+    </div>
+  `;
+  const inp=$("#gInp"), hint=$("#gHint"), info=$("#gInfo");
+
+  function newGame(){
+    secret=Math.floor(1+Math.random()*100);
+    tries=0; hint.textContent="🤫"; info.textContent="";
+    inp.value=""; inp.focus();
+    toast("Загадал новое число");
+  }
+  function check(){
+    const v=Number(inp.value);
+    if(!Number.isFinite(v) || v<1 || v>100){ toast("Введи 1..100"); return; }
+    tries++;
+    if(v===secret){
+      hint.innerHTML=`<span class="good">🎉 Угадал!</span>`;
+      let rec=loadRec();
+      if(rec.guess_best_tries===null || tries < rec.guess_best_tries){
+        rec.guess_best_tries=tries; saveRec(rec); renderRec();
+        info.innerHTML=`Попыток: <b>${tries}</b> — новый рекорд!`;
+      } else {
+        info.innerHTML=`Попыток: <b>${tries}</b>`;
+      }
+      toast("Победа!");
+      return;
+    }
+    hint.textContent = (v<secret) ? "Больше ↑" : "Меньше ↓";
+    info.textContent = `Попыток: ${tries}`;
+  }
+  $("#gTry").onclick=check;
+  $("#gNew").onclick=newGame;
+  inp.addEventListener("keydown",(e)=>{ if(e.key==="Enter") check(); });
+  newGame();
+}
+
+/* ---------- Game: Math ---------- */
+function mountMath(root){
+  $("#badgeGame").textContent = "🧠 Математика";
+  let a=0,b=0,op="+",ans=0, score=0, timeLeft=30, timer=null;
+
+  root.innerHTML = `
+    <h2>🧠 Математика на скорость</h2>
+    <p class="muted">30 секунд. Верно → +1. Неверно → покажу правильный.</p>
+    <div class="card2" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between">
+        <div class="badge">Очки: <span id="mScore">0</span></div>
+        <div class="badge">Время: <span id="mTime">30</span>s</div>
+      </div>
+      <div class="sep"></div>
+      <div class="big" id="mQ">—</div>
+      <div class="row" style="margin-top:10px">
+        <input id="mInp" type="number" placeholder="Ответ" style="flex:1; min-width:140px" />
+        <button class="btn" id="mOk">Ок</button>
+        <button class="btn secondary" id="mStart">Старт</button>
+        <button class="btn danger" id="mStop">Стоп</button>
+      </div>
+      <div class="small" id="mInfo" style="margin-top:10px"></div>
+    </div>
+  `;
+  const qEl=$("#mQ"), sEl=$("#mScore"), tEl=$("#mTime"), inp=$("#mInp"), info=$("#mInfo");
+
+  function gen(){
+    a=Math.floor(2+Math.random()*20);
+    b=Math.floor(2+Math.random()*20);
+    op=Math.random()<0.5?"+":"-";
+    if(op==="-" && b>a){ const t=a;a=b;b=t; }
+    ans = (op==="+") ? (a+b) : (a-b);
+    qEl.textContent = `${a} ${op} ${b} = ?`;
+    inp.value=""; inp.focus();
+  }
+  function stop(){
+    clearInterval(timer); timer=null;
+    info.innerHTML = `Итог: <b>${score}</b> очков.`;
+    let rec=loadRec();
+    if(rec.math_best_score===null || score > rec.math_best_score){
+      rec.math_best_score=score; saveRec(rec); renderRec();
+      info.innerHTML += ` <span class="good">Новый рекорд!</span>`;
+    }
+    toast("Стоп");
+  }
+  function tick(){
+    timeLeft--; tEl.textContent=timeLeft;
+    if(timeLeft<=0) stop();
+  }
+  function start(){
+    score=0; timeLeft=30;
+    sEl.textContent=score; tEl.textContent=timeLeft;
+    info.textContent="";
+    gen();
+    clearInterval(timer);
+    timer=setInterval(tick,1000);
+    toast("Поехали!");
+  }
+  function submit(){
+    if(!timer){ toast("Нажми «Старт»"); return; }
+    const v=Number(inp.value);
+    if(!Number.isFinite(v)){ toast("Введи число"); return; }
+    if(v===ans){ score++; sEl.textContent=score; toast("Верно!"); gen(); }
+    else { toast("Неверно"); info.textContent=`Правильно: ${ans}`; gen(); }
+  }
+  $("#mStart").onclick=start;
+  $("#mStop").onclick=stop;
+  $("#mOk").onclick=submit;
+  inp.addEventListener("keydown",(e)=>{ if(e.key==="Enter") submit(); });
+  gen();
+}
+
+/* ---------- Game: Clicker 10s ---------- */
+function mountClicker(root){
+  $("#badgeGame").textContent = "🖱️ Кликер 10с";
+  let score=0, timeLeft=10, timer=null, running=false;
+
+  root.innerHTML = `
+    <h2>🖱️ Кликер 10 секунд</h2>
+    <p class="muted">Нажимай на кнопку как можно быстрее 10 секунд.</p>
+    <div class="card2" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between">
+        <div class="badge">Клики: <span id="cScore">0</span></div>
+        <div class="badge">Время: <span id="cTime">10</span>s</div>
+      </div>
+      <div class="sep"></div>
+      <div class="row">
+        <button class="btn" id="cTap" style="flex:1; min-width:200px; height:70px; font-size:18px; font-weight:900;">ТАП!</button>
+        <button class="btn secondary" id="cStart">Старт</button>
+        <button class="btn danger" id="cStop">Стоп</button>
+      </div>
+      <div class="small" id="cInfo" style="margin-top:10px"></div>
+    </div>
+  `;
+  const sEl=$("#cScore"), tEl=$("#cTime"), info=$("#cInfo"), tap=$("#cTap");
+
+  function end(){
+    running=false; clearInterval(timer); timer=null;
+    info.innerHTML = `Итог: <b>${score}</b>`;
+    let rec=loadRec();
+    if(rec.clicker_best===null || score > rec.clicker_best){
+      rec.clicker_best=score; saveRec(rec); renderRec();
+      info.innerHTML += ` <span class="good">Новый рекорд!</span>`;
+    }
+    toast("Готово!");
+  }
+  function tick(){
+    timeLeft--; tEl.textContent=timeLeft;
+    if(timeLeft<=0) end();
+  }
+  function start(){
+    score=0; timeLeft=10; running=true;
+    sEl.textContent=score; tEl.textContent=timeLeft; info.textContent="";
+    clearInterval(timer); timer=setInterval(tick,1000);
+    toast("Старт!");
+  }
+  tap.onclick=()=>{
+    if(!running){ toast("Нажми «Старт»"); return; }
+    score++; sEl.textContent=score;
+  };
+  $("#cStart").onclick=start;
+  $("#cStop").onclick=end;
+}
+
+/* ---------- Game: Memory 4x4 ---------- */
+function mountMemory(root){
+  $("#badgeGame").textContent = "🧩 Память 4×4";
+  const icons = ["🍒","🍋","🍇","🍉","🍓","🥝","🍑","🍍"]; // 8 пар
+  let deck = [...icons, ...icons].sort(()=>Math.random()-0.5);
+  let open = []; // indices
+  let matched = new Set();
+  let moves = 0;
+  let lock = false;
+
+  root.innerHTML = `
+    <h2>🧩 Память 4×4</h2>
+    <p class="muted">Открой 2 карточки. Если одинаковые — остаются открытыми.</p>
+    <div class="card2" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between">
+        <div class="badge">Ходы: <span id="mmMoves">0</span></div>
+        <button class="btn secondary" id="mmNew">Новая</button>
+      </div>
+      <div class="sep"></div>
+      <div class="mem" id="mmGrid"></div>
+      <div class="small" id="mmInfo" style="margin-top:10px"></div>
+    </div>
+  `;
+  const grid=$("#mmGrid"), mEl=$("#mmMoves"), info=$("#mmInfo");
+
+  function render(){
+    mEl.textContent = moves;
+    grid.innerHTML = "";
+    for(let i=0;i<deck.length;i++){
+      const isOpen = open.includes(i) || matched.has(i);
+      const tile = document.createElement("div");
+      tile.className = "cardtile";
+      tile.textContent = isOpen ? deck[i] : "•";
+      tile.onclick = () => flip(i);
+      grid.appendChild(tile);
+    }
+  }
+  function win(){
+    info.innerHTML = `<span class="good">Готово!</span> Ходов: <b>${moves}</b>`;
+    let rec=loadRec();
+    if(rec.memory_best_moves===null || moves < rec.memory_best_moves){
+      rec.memory_best_moves = moves; saveRec(rec); renderRec();
+      info.innerHTML += ` — <span class="good">Новый рекорд!</span>`;
+    }
+    toast("Победа!");
+  }
+  function flip(i){
+    if(lock) return;
+    if(matched.has(i)) return;
+    if(open.includes(i)) return;
+
+    open.push(i);
+    if(open.length === 2) moves++;
+    render();
+
+    if(open.length < 2) return;
+
+    const [a,b] = open;
+    if(deck[a] === deck[b]){
+      matched.add(a); matched.add(b);
+      open = [];
+      render();
+      if(matched.size === deck.length) win();
+      return;
+    }
+
+    lock = true;
+    setTimeout(()=>{
+      open = [];
+      lock = false;
+      render();
+    }, 550);
+  }
+
+  $("#mmNew").onclick = () => {
+    deck = [...icons, ...icons].sort(()=>Math.random()-0.5);
+    open=[]; matched=new Set(); moves=0; lock=false; info.textContent="";
+    render();
+    toast("Новая игра");
+  };
+
+  render();
+}
+
+/* init */
+renderRec();
+showHome();
+setActiveChip();
+</script>
+</body>
+</html>
