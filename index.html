@@ -135,6 +135,9 @@
         <h2>Рекорды</h2>
         <div class="grid2" id="recordsBox"></div>
         <div class="row" style="margin-top:10px">
+          <button class="btn secondary" id="sendToBot">📤 Отправить рекорды в бота</button>
+          <button class="btn secondary" id="backToBot">⬅️ Назад в бота</button>
+          <button class="btn secondary" id="shareBot">📣 Поделиться ботом</button>
           <button class="btn danger" id="clearRecords">Сбросить рекорды</button>
         </div>
 
@@ -167,7 +170,7 @@
 
         <div class="sep"></div>
         <div class="small muted">
-          Совет: лучше открывать из Telegram — будет удобнее на телефоне.
+          Подсказка: если откроешь сайт внутри Telegram — будут работать кнопки “Отправить рекорды” и “Назад в бота”.
         </div>
       </div>
 
@@ -187,7 +190,7 @@
       <div class="card2">
         <h2>Подсказка</h2>
         <div class="small muted">
-          Если откроешь сайт внутри Telegram — он разворачивается на весь экран.
+          Ссылки для бота: <b>#snake</b> и <b>#g2048</b> открывают игру сразу.
         </div>
       </div>
     </div>
@@ -196,6 +199,10 @@
   <div class="toast" id="toast"></div>
 
 <script>
+/* ===== Consts ===== */
+const BOT_USERNAME = "Gamemasterbot_2bot";
+const BOT_LINK = "https://t.me/" + BOT_USERNAME;
+
 /* ===== Telegram adapt (только UI) ===== */
 (function(){
   const tg = window.Telegram?.WebApp;
@@ -231,6 +238,22 @@ function toast(msg){
   toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1500);
 }
 
+function openBot(){
+  const tg = window.Telegram?.WebApp;
+  const url = BOT_LINK;
+  if(tg?.openTelegramLink) tg.openTelegramLink(url);
+  else window.open(url, "_blank");
+}
+
+function shareBot(){
+  const tgShareUrl = "https://t.me/share/url?url=" + encodeURIComponent(BOT_LINK) +
+    "&text=" + encodeURIComponent("Играй в мини-игры 🎮 в боте @" + BOT_USERNAME);
+  const tg = window.Telegram?.WebApp;
+  if(tg?.openTelegramLink) tg.openTelegramLink(tgShareUrl);
+  else if(navigator.share) navigator.share({ title:"GameMaster", text:"Играй в мини-игры", url: BOT_LINK }).catch(()=>{});
+  else window.open(tgShareUrl, "_blank");
+}
+
 /* ===== Records (localStorage) ===== */
 const REC_KEY = "gm_records_v2";
 const defaultRec = {
@@ -264,11 +287,24 @@ function renderRec(){
     <div class="rec"><div class="small">🐍 Snake (лучший)</div><div class="big">${fmt(r.snake_best_score,"")}</div></div>
   `;
 }
+
 $("#clearRecords").onclick = () => {
   localStorage.removeItem(REC_KEY);
   renderRec();
   toast("Рекорды сброшены");
 };
+
+// 📤 отправка в бота
+$("#sendToBot").onclick = () => {
+  const tg = window.Telegram?.WebApp;
+  if(!tg) return toast("Открой сайт внутри Telegram");
+  const payload = { type: "records", records: loadRec() };
+  tg.sendData(JSON.stringify(payload));
+  toast("Отправлено в бота ✅");
+};
+
+$("#backToBot").onclick = () => openBot();
+$("#shareBot").onclick = () => shareBot();
 
 /* ===== Navigation ===== */
 const state = { gameId: "reaction" };
@@ -277,7 +313,6 @@ function showHome(){
   $("#viewHome").classList.remove("hidden");
   $("#viewGame").classList.add("hidden");
   $("#gameRoot").innerHTML = "";
-  // убираем управление клавишами от игр
   window.onkeydown = null;
 }
 function showGame(){
@@ -290,7 +325,7 @@ function setActiveChip(){
 $$("#gameChips .chip").forEach(ch => ch.onclick = () => { state.gameId = ch.dataset.id; setActiveChip(); });
 
 $("#resetBtn").onclick = () => { state.gameId="reaction"; setActiveChip(); toast("Сброшено"); };
-$("#backBtn").onclick = showHome;
+$("#backBtn").onclick = () => { location.hash = ""; showHome(); };
 $("#startBtn").onclick = () => { showGame(); mountGame(state.gameId); };
 
 function mountGame(id){
@@ -738,7 +773,6 @@ function mount2048(root){
         const d = document.createElement("div");
         d.className = "t2048";
         d.textContent = v ? v : "";
-        // небольшая “подсветка” от значения
         const alpha = v ? Math.min(0.35, 0.06 + Math.log2(v)*0.03) : 0.05;
         d.style.background = `rgba(106,169,255,${alpha})`;
         grid.appendChild(d);
@@ -749,7 +783,6 @@ function mount2048(root){
   }
 
   function slideLine(line){
-    // line: [a,b,c,d]
     const arr = line.filter(x=>x!==0);
     let gained = 0;
     for(let i=0;i<arr.length-1;i++){
@@ -764,11 +797,8 @@ function mount2048(root){
   }
 
   function move(dir){
-    // dir: "L","R","U","D"
-    let changed = false;
-    let gainedTotal = 0;
-
     const before = JSON.stringify(board);
+    let gainedTotal = 0;
 
     if(dir==="L"||dir==="R"){
       for(let r=0;r<4;r++){
@@ -792,14 +822,13 @@ function mount2048(root){
       }
     }
 
-    changed = (JSON.stringify(board) !== before);
+    const changed = (JSON.stringify(board) !== before);
     if(!changed) return false;
 
     score += gainedTotal;
     addRandom();
     render();
 
-    // record
     const rec = loadRec();
     const mt = maxTile();
     let updated = false;
@@ -810,9 +839,8 @@ function mount2048(root){
     if(isGameOver()){
       info.innerHTML = `<span class="bad">Игра окончена.</span> Нажми “Новая”.`;
       toast("2048: Game Over");
-    } else {
-      info.textContent = "—";
-    }
+    } else info.textContent = "—";
+
     return true;
   }
 
@@ -838,7 +866,6 @@ function mount2048(root){
     toast("2048: Новая игра");
   }
 
-  // keyboard
   window.onkeydown = (e)=>{
     const k=e.key;
     if(k==="ArrowLeft") { e.preventDefault(); move("L"); }
@@ -847,7 +874,6 @@ function mount2048(root){
     else if(k==="ArrowDown") { e.preventDefault(); move("D"); }
   };
 
-  // swipe
   let sx=0, sy=0;
   grid.addEventListener("touchstart",(e)=>{
     const t=e.changedTouches[0];
@@ -870,9 +896,9 @@ function mount2048(root){
 function mountSnake(root){
   $("#badgeGame").textContent = "🐍 Snake";
 
-  const size = 20;          // 20x20
-  const cell = 20;          // canvas pixels per cell
-  const speedMs = 120;      // скорость
+  const size = 20;
+  const cell = 20;
+  const speedMs = 120;
 
   let snake, dir, nextDir, food, score, timer, alive;
 
@@ -908,9 +934,7 @@ function mountSnake(root){
   const bestEl = $("#snBest");
   const info = $("#snInfo");
 
-  function randCell(){
-    return {x: Math.floor(Math.random()*size), y: Math.floor(Math.random()*size)};
-  }
+  function randCell(){ return {x: Math.floor(Math.random()*size), y: Math.floor(Math.random()*size)}; }
   function eq(a,b){ return a.x===b.x && a.y===b.y; }
 
   function placeFood(){
@@ -951,7 +975,6 @@ function mountSnake(root){
   }
 
   function changeDir(d){
-    // запрет разворота на 180°
     if(d.x===-dir.x && d.y===-dir.y) return;
     nextDir = d;
   }
@@ -963,11 +986,8 @@ function mountSnake(root){
     const head = snake[0];
     const nh = {x: head.x + dir.x, y: head.y + dir.y};
 
-    // стены
-    if(nh.x<0||nh.y<0||nh.x>=size||nh.y>=size){ return gameOver(); }
-
-    // тело
-    if(snake.some(p=>eq(p,nh))){ return gameOver(); }
+    if(nh.x<0||nh.y<0||nh.x>=size||nh.y>=size) return gameOver();
+    if(snake.some(p=>eq(p,nh))) return gameOver();
 
     snake.unshift(nh);
 
@@ -986,7 +1006,6 @@ function mountSnake(root){
     alive=false;
     clearInterval(timer); timer=null;
 
-    // record
     const rec = loadRec();
     if(rec.snake_best_score==null || score > rec.snake_best_score){
       rec.snake_best_score = score;
@@ -1003,7 +1022,6 @@ function mountSnake(root){
   function draw(){
     ctx.clearRect(0,0,cvs.width,cvs.height);
 
-    // сетка (легкая)
     ctx.globalAlpha = 0.12;
     for(let i=0;i<=size;i++){
       ctx.beginPath(); ctx.moveTo(i*cell,0); ctx.lineTo(i*cell,size*cell); ctx.stroke();
@@ -1011,17 +1029,14 @@ function mountSnake(root){
     }
     ctx.globalAlpha = 1;
 
-    // food
     ctx.fillRect(food.x*cell+4, food.y*cell+4, cell-8, cell-8);
 
-    // snake
     snake.forEach((p,idx)=>{
       const pad = idx===0 ? 2 : 5;
       ctx.fillRect(p.x*cell+pad, p.y*cell+pad, cell-pad*2, cell-pad*2);
     });
   }
 
-  // keyboard
   window.onkeydown = (e)=>{
     const k=e.key;
     if(k==="ArrowUp") { e.preventDefault(); changeDir({x:0,y:-1}); }
@@ -1030,7 +1045,6 @@ function mountSnake(root){
     else if(k==="ArrowRight") { e.preventDefault(); changeDir({x:1,y:0}); }
   };
 
-  // buttons
   $("#snUp").onclick=()=>changeDir({x:0,y:-1});
   $("#snDown").onclick=()=>changeDir({x:0,y:1});
   $("#snLeft").onclick=()=>changeDir({x:-1,y:0});
@@ -1038,7 +1052,6 @@ function mountSnake(root){
   $("#snNew").onclick=reset;
   $("#snStop").onclick=stop;
 
-  // swipe on canvas
   let sx=0, sy=0;
   cvs.addEventListener("touchstart",(e)=>{
     const t=e.changedTouches[0];
@@ -1056,10 +1069,23 @@ function mountSnake(root){
   reset();
 }
 
-/* init */
+/* ===== init ===== */
 renderRec();
 showHome();
 setActiveChip();
+
+// Авто-открытие игры по ссылке: .../#snake или .../#g2048
+(function(){
+  const h = (location.hash || "").replace("#","");
+  if(!h) return;
+  const allowed = new Set(["reaction","guess","math","clicker","memory","rps","g2048","snake"]);
+  if(!allowed.has(h)) return;
+
+  state.gameId = h;
+  setActiveChip();
+  showGame();
+  mountGame(state.gameId);
+})();
 </script>
 </body>
 </html>
