@@ -121,7 +121,7 @@
       <div class="brand"><span class="dot"></span> GameMaster Mini Games</div>
       <div class="row">
         <span class="pill" id="whoPill">Solo • Offline</span>
-        <a class="btn secondary" href="https://t.me/Gamemasterbot_2bot" target="_blank" rel="noreferrer">Открыть бота</a>
+        <a class="btn secondary" id="openBotTop" href="#" rel="noreferrer">Открыть бота</a>
       </div>
     </div>
 
@@ -144,10 +144,24 @@
         <div class="sep"></div>
 
         <h2>Отзывы</h2>
-        <div class="row">
-          <a class="btn secondary" href="https://github.com/kadyrkhanmukhammedzhan-blip/tg-games-site/issues" target="_blank" rel="noreferrer">Смотреть отзывы</a>
-          <a class="btn" href="https://github.com/kadyrkhanmukhammedzhan-blip/tg-games-site/issues/new" target="_blank" rel="noreferrer">Оставить отзыв</a>
+        <p class="muted">Оставь отзыв прямо тут. Если сайт открыт внутри Telegram — отзыв уйдёт в бота.</p>
+
+        <div class="row" style="align-items:stretch; width:100%">
+          <div style="flex:1; min-width:160px">
+            <div class="small muted" style="margin-bottom:6px">Оценка (1–5)</div>
+            <input id="revRating" type="number" min="1" max="5" value="5" />
+          </div>
+          <div style="flex:3; min-width:240px">
+            <div class="small muted" style="margin-bottom:6px">Текст отзыва</div>
+            <input id="revText" type="text" maxlength="200" placeholder="Например: топ сайт, добавь ещё игр!" />
+          </div>
         </div>
+
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="sendReview">✍️ Отправить отзыв</button>
+          <button class="btn secondary" id="openReviewsInBot">⭐ Смотреть отзывы в боте</button>
+        </div>
+        <div class="small muted" id="revInfo" style="margin-top:8px"></div>
 
         <div class="sep"></div>
 
@@ -170,7 +184,7 @@
 
         <div class="sep"></div>
         <div class="small muted">
-          Подсказка: если откроешь сайт внутри Telegram — будут работать кнопки “Отправить рекорды” и “Назад в бота”.
+          Подсказка: чтобы отправка в бота работала — открой сайт из кнопки бота (Telegram WebApp).
         </div>
       </div>
 
@@ -190,7 +204,7 @@
       <div class="card2">
         <h2>Подсказка</h2>
         <div class="small muted">
-          Ссылки для бота: <b>#snake</b> и <b>#g2048</b> открывают игру сразу.
+          Прямые ссылки на игру: <b>#snake</b> и <b>#g2048</b> (например: /#snake).
         </div>
       </div>
     </div>
@@ -202,28 +216,6 @@
 /* ===== Consts ===== */
 const BOT_USERNAME = "Gamemasterbot_2bot";
 const BOT_LINK = "https://t.me/" + BOT_USERNAME;
-
-/* ===== Telegram adapt (только UI) ===== */
-(function(){
-  const tg = window.Telegram?.WebApp;
-  if(!tg) return;
-  try{
-    tg.expand?.();
-    const u = tg.initDataUnsafe?.user;
-    if(u){
-      const name = u.username ? "@"+u.username : (u.first_name || "TG Player");
-      document.getElementById("whoPill").textContent = `TG: ${name}`;
-    } else {
-      document.getElementById("whoPill").textContent = "Telegram WebApp";
-    }
-    const tp = tg.themeParams || {};
-    const root = document.documentElement;
-    if(tp.bg_color) root.style.setProperty("--bg", tp.bg_color);
-    if(tp.text_color) root.style.setProperty("--text", tp.text_color);
-    if(tp.hint_color) root.style.setProperty("--muted", tp.hint_color);
-    if(tp.button_color) root.style.setProperty("--acc", tp.button_color);
-  }catch{}
-})();
 
 /* ===== Helpers ===== */
 const $ = (s, el=document) => el.querySelector(s);
@@ -238,21 +230,59 @@ function toast(msg){
   toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1500);
 }
 
-function openBot(){
-  const tg = window.Telegram?.WebApp;
-  const url = BOT_LINK;
+/* ===== Telegram helpers ===== */
+function tgObj(){ return window.Telegram?.WebApp || null; }
+
+function openBotLink(url){
+  const tg = tgObj();
   if(tg?.openTelegramLink) tg.openTelegramLink(url);
   else window.open(url, "_blank");
+}
+
+function openBot(){
+  openBotLink(BOT_LINK);
 }
 
 function shareBot(){
   const tgShareUrl = "https://t.me/share/url?url=" + encodeURIComponent(BOT_LINK) +
     "&text=" + encodeURIComponent("Играй в мини-игры 🎮 в боте @" + BOT_USERNAME);
-  const tg = window.Telegram?.WebApp;
+  const tg = tgObj();
   if(tg?.openTelegramLink) tg.openTelegramLink(tgShareUrl);
   else if(navigator.share) navigator.share({ title:"GameMaster", text:"Играй в мини-игры", url: BOT_LINK }).catch(()=>{});
   else window.open(tgShareUrl, "_blank");
 }
+
+$("#openBotTop").onclick = (e)=>{ e.preventDefault(); openBot(); };
+$("#backToBot").onclick = ()=> openBot();
+$("#shareBot").onclick = ()=> shareBot();
+$("#openReviewsInBot").onclick = ()=> openBotLink(BOT_LINK + "?start=reviews");
+
+/* ===== Telegram init (UI + ready) ===== */
+(function(){
+  const tg = tgObj();
+  if(!tg) return;
+  try{
+    tg.ready(); // важно
+    tg.expand();
+
+    const u = tg.initDataUnsafe?.user;
+    if(u){
+      const name = u.username ? "@"+u.username : (u.first_name || "TG Player");
+      $("#whoPill").textContent = `TG: ${name}`;
+    } else {
+      $("#whoPill").textContent = "Telegram WebApp";
+    }
+
+    const tp = tg.themeParams || {};
+    const root = document.documentElement;
+    if(tp.bg_color) root.style.setProperty("--bg", tp.bg_color);
+    if(tp.text_color) root.style.setProperty("--text", tp.text_color);
+    if(tp.hint_color) root.style.setProperty("--muted", tp.hint_color);
+    if(tp.button_color) root.style.setProperty("--acc", tp.button_color);
+  }catch(e){
+    console.log("TG init error", e);
+  }
+})();
 
 /* ===== Records (localStorage) ===== */
 const REC_KEY = "gm_records_v2";
@@ -277,34 +307,80 @@ function renderRec(){
   const r = loadRec();
   const fmt = (v, suf="") => (v===null || v===undefined) ? "—" : (String(v)+suf);
   $("#recordsBox").innerHTML = `
-    <div class="rec"><div class="small">⚡ Реакция (лучшее)</div><div class="big">${fmt(r.reaction_best_ms," мс")}</div></div>
-    <div class="rec"><div class="small">🎯 Угадай (минимум)</div><div class="big">${fmt(r.guess_best_tries," попыток")}</div></div>
-    <div class="rec"><div class="small">🧠 Математика (макс.)</div><div class="big">${fmt(r.math_best_score,"")}</div></div>
-    <div class="rec"><div class="small">🖱️ Кликер (макс.)</div><div class="big">${fmt(r.clicker_best,"")}</div></div>
-    <div class="rec"><div class="small">🧩 Память (мин. ходов)</div><div class="big">${fmt(r.memory_best_moves,"")}</div></div>
+    <div class="rec"><div class="small">⚡ Реакция</div><div class="big">${fmt(r.reaction_best_ms," мс")}</div></div>
+    <div class="rec"><div class="small">🎯 Угадай</div><div class="big">${fmt(r.guess_best_tries," попыток")}</div></div>
+    <div class="rec"><div class="small">🧠 Математика</div><div class="big">${fmt(r.math_best_score,"")}</div></div>
+    <div class="rec"><div class="small">🖱️ Кликер</div><div class="big">${fmt(r.clicker_best,"")}</div></div>
+    <div class="rec"><div class="small">🧩 Память</div><div class="big">${fmt(r.memory_best_moves,"")}</div></div>
     <div class="rec"><div class="small">🎮 2048 (очки)</div><div class="big">${fmt(r.g2048_best_score,"")}</div></div>
     <div class="rec"><div class="small">🎮 2048 (плитка)</div><div class="big">${fmt(r.g2048_best_tile,"")}</div></div>
-    <div class="rec"><div class="small">🐍 Snake (лучший)</div><div class="big">${fmt(r.snake_best_score,"")}</div></div>
+    <div class="rec"><div class="small">🐍 Snake</div><div class="big">${fmt(r.snake_best_score,"")}</div></div>
   `;
 }
-
 $("#clearRecords").onclick = () => {
   localStorage.removeItem(REC_KEY);
   renderRec();
   toast("Рекорды сброшены");
 };
 
-// 📤 отправка в бота
+/* ===== Send records to bot ===== */
 $("#sendToBot").onclick = () => {
-  const tg = window.Telegram?.WebApp;
-  if(!tg) return toast("Открой сайт внутри Telegram");
-  const payload = { type: "records", records: loadRec() };
-  tg.sendData(JSON.stringify(payload));
-  toast("Отправлено в бота ✅");
+  const tg = tgObj();
+  if(!tg || !tg.initDataUnsafe){
+    toast("❌ Открой сайт через кнопку бота");
+    return;
+  }
+  const payload = { type:"records", records: loadRec(), ts: Date.now() };
+  try{
+    tg.ready?.();
+    tg.sendData(JSON.stringify(payload));
+    toast("✅ Рекорды отправлены");
+  }catch(e){
+    console.log("sendData records error", e);
+    toast("❌ Ошибка отправки");
+  }
 };
 
-$("#backToBot").onclick = () => openBot();
-$("#shareBot").onclick = () => shareBot();
+/* ===== Reviews (site -> bot) ===== */
+$("#sendReview").onclick = () => {
+  const rating = Number($("#revRating").value);
+  const text = ($("#revText").value || "").trim();
+
+  if(!Number.isFinite(rating) || rating < 1 || rating > 5){
+    toast("Оценка должна быть 1..5");
+    return;
+  }
+  if(text.length < 3){
+    toast("Отзыв слишком короткий");
+    return;
+  }
+
+  const tg = tgObj();
+
+  // отправка в бота (работает только если открыто как Telegram WebApp)
+  if(tg && tg.initDataUnsafe){
+    try{
+      tg.ready?.();
+      tg.sendData(JSON.stringify({ type:"review", rating, text, ts: Date.now() }));
+      $("#revText").value = "";
+      $("#revInfo").textContent = "✅ Отзыв отправлен в бота!";
+      toast("Отправлено ✅");
+      return;
+    }catch(e){
+      console.log("sendData review error", e);
+    }
+  }
+
+  // если не Telegram — сохраним локально
+  const key = "gm_local_reviews";
+  const arr = JSON.parse(localStorage.getItem(key) || "[]");
+  arr.push({ ts: Date.now(), rating, text });
+  localStorage.setItem(key, JSON.stringify(arr.slice(-50)));
+
+  $("#revText").value = "";
+  $("#revInfo").textContent = "✅ Сохранено локально (открой в Telegram, чтобы отправить в бота).";
+  toast("Сохранено локально");
+};
 
 /* ===== Navigation ===== */
 const state = { gameId: "reaction" };
@@ -1069,12 +1145,12 @@ function mountSnake(root){
   reset();
 }
 
-/* ===== init ===== */
+/* init */
 renderRec();
 showHome();
 setActiveChip();
 
-// Авто-открытие игры по ссылке: .../#snake или .../#g2048
+/* Авто-открытие игры по ссылке: .../#snake, .../#g2048 и т.д. */
 (function(){
   const h = (location.hash || "").replace("#","");
   if(!h) return;
@@ -1088,4 +1164,4 @@ setActiveChip();
 })();
 </script>
 </body>
-</html>
+  </html>
