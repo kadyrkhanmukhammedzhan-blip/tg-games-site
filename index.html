@@ -4,10 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GameMaster Mini Games</title>
-
-  <!-- Telegram WebApp (если открыто внутри Telegram) -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
   <style>
     :root{
       --bg:#0b1220; --card:#121a2b; --card2:#0f1728;
@@ -31,14 +28,8 @@
     .brand .dot{width:10px; height:10px; border-radius:50%; background:var(--acc); box-shadow:0 0 24px rgba(106,169,255,.7)}
     .pill{font-size:12px; color:var(--muted); border:1px solid var(--border); padding:6px 10px; border-radius:999px}
     .grid{display:grid; grid-template-columns: 1fr; gap:12px; margin-top:12px}
-    .card{
-      padding:16px; border-radius:18px; border:1px solid var(--border);
-      background: rgba(18,26,43,.75);
-    }
-    .card2{
-      padding:16px; border-radius:18px; border:1px solid var(--border);
-      background: rgba(15,23,40,.75);
-    }
+    .card{ padding:16px; border-radius:18px; border:1px solid var(--border); background: rgba(18,26,43,.75); }
+    .card2{ padding:16px; border-radius:18px; border:1px solid var(--border); background: rgba(15,23,40,.75); }
     h1{margin:6px 0 10px; font-size:30px; line-height:1.1}
     h2{margin:0 0 10px; font-size:18px}
     p{margin:0 0 10px; color:var(--muted)}
@@ -88,13 +79,8 @@
     .good{color:var(--ok)}
     .bad{color:var(--bad)}
     .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
-    .rec{
-      padding:10px 12px; border-radius:14px; border:1px solid var(--border);
-      background: rgba(255,255,255,.04);
-    }
-    .mem{
-      display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; max-width:520px;
-    }
+    .rec{ padding:10px 12px; border-radius:14px; border:1px solid var(--border); background: rgba(255,255,255,.04); }
+    .mem{ display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; max-width:520px; }
     .cardtile{
       aspect-ratio: 1/1;
       border-radius:16px;
@@ -104,9 +90,31 @@
       font-size:28px; font-weight:900;
       user-select:none; cursor:pointer;
     }
+
+    /* 2048 */
+    .g2048{max-width:520px}
+    .g2048grid{
+      display:grid; grid-template-columns: repeat(4,1fr); gap:10px;
+      padding:12px; border-radius:18px; border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      touch-action: none;
+    }
+    .t2048{
+      aspect-ratio: 1/1;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.15);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900; font-size:22px;
+      user-select:none;
+    }
+
+    /* Snake */
+    canvas{max-width:520px; width:100%; height:auto; border-radius:18px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.18);}
+    .dpad{display:grid; grid-template-columns: 60px 60px 60px; gap:8px; justify-content:center; margin-top:10px}
+    .dpad .btn{padding:10px 0}
   </style>
 </head>
-
 <body>
   <div class="wrap">
     <div class="top">
@@ -118,10 +126,9 @@
     </div>
 
     <div class="grid">
-      <!-- HOME -->
       <div class="card" id="viewHome">
         <h1>Мини-игры (1 игрок)</h1>
-        <p class="muted">Игры работают без входа. Вход — только по желанию.</p>
+        <p class="muted">Без входа. Рекорды сохраняются на этом устройстве.</p>
 
         <div class="sep"></div>
 
@@ -133,27 +140,9 @@
 
         <div class="sep"></div>
 
-        <h2>Профиль (вход по желанию)</h2>
-        <p class="muted small">Google/iCloud — через Firebase (если настроишь). В Telegram просто покажем имя, если открыл внутри Telegram.</p>
-
-        <div class="card2">
-          <div class="row" style="justify-content:space-between; align-items:center">
-            <div>
-              <div class="small muted">Статус</div>
-              <div id="authStatus" style="font-weight:900; font-size:18px">Гость</div>
-              <div class="small muted" id="authSub">—</div>
-            </div>
-            <div class="row">
-              <button class="btn" id="btnGoogle">Войти через Google</button>
-              <button class="btn secondary" id="btnApple">Войти через iCloud</button>
-              <a class="btn secondary" href="https://t.me/Gamemasterbot_2bot" target="_blank" rel="noreferrer">Войти через Telegram</a>
-              <button class="btn danger" id="btnLogout">Выйти</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="row" style="margin-top:10px">
-          <a class="btn secondary" href="https://github.com/kadyrkhanmukhammedzhan-blip/tg-games-site/issues" target="_blank" rel="noreferrer">Отзывы</a>
+        <h2>Отзывы</h2>
+        <div class="row">
+          <a class="btn secondary" href="https://github.com/kadyrkhanmukhammedzhan-blip/tg-games-site/issues" target="_blank" rel="noreferrer">Смотреть отзывы</a>
           <a class="btn" href="https://github.com/kadyrkhanmukhammedzhan-blip/tg-games-site/issues/new" target="_blank" rel="noreferrer">Оставить отзыв</a>
         </div>
 
@@ -166,15 +155,22 @@
           <div class="chip" data-id="math">🧠 Математика</div>
           <div class="chip" data-id="clicker">🖱️ Кликер 10с</div>
           <div class="chip" data-id="memory">🧩 Память 4×4</div>
+          <div class="chip" data-id="rps">✊✋✌ КНБ</div>
+          <div class="chip" data-id="g2048">🎮 2048</div>
+          <div class="chip" data-id="snake">🐍 Snake</div>
         </div>
 
         <div class="row" style="margin-top:12px">
           <button class="btn" id="startBtn">Запустить</button>
           <button class="btn secondary" id="resetBtn">Сброс выбора</button>
         </div>
+
+        <div class="sep"></div>
+        <div class="small muted">
+          Совет: лучше открывать из Telegram — будет удобнее на телефоне.
+        </div>
       </div>
 
-      <!-- GAME -->
       <div class="card hidden" id="viewGame">
         <div class="row" style="justify-content:space-between">
           <div class="row" style="gap:8px; flex-wrap:wrap">
@@ -191,7 +187,7 @@
       <div class="card2">
         <h2>Подсказка</h2>
         <div class="small muted">
-          Если откроешь сайт внутри Telegram — сверху появится TG-имя (если доступно).
+          Если откроешь сайт внутри Telegram — он разворачивается на весь экран.
         </div>
       </div>
     </div>
@@ -200,7 +196,7 @@
   <div class="toast" id="toast"></div>
 
 <script>
-/* ===== Telegram adapt (только для отображения имени и темы) ===== */
+/* ===== Telegram adapt (только UI) ===== */
 (function(){
   const tg = window.Telegram?.WebApp;
   if(!tg) return;
@@ -213,7 +209,6 @@
     } else {
       document.getElementById("whoPill").textContent = "Telegram WebApp";
     }
-
     const tp = tg.themeParams || {};
     const root = document.documentElement;
     if(tp.bg_color) root.style.setProperty("--bg", tp.bg_color);
@@ -237,13 +232,16 @@ function toast(msg){
 }
 
 /* ===== Records (localStorage) ===== */
-const REC_KEY = "gm_records_v1";
+const REC_KEY = "gm_records_v2";
 const defaultRec = {
   reaction_best_ms: null,
   guess_best_tries: null,
   math_best_score: null,
   clicker_best: null,
-  memory_best_moves: null
+  memory_best_moves: null,
+  g2048_best_score: null,
+  g2048_best_tile: null,
+  snake_best_score: null
 };
 function loadRec(){
   try{
@@ -254,14 +252,16 @@ function loadRec(){
 function saveRec(rec){ localStorage.setItem(REC_KEY, JSON.stringify(rec)); }
 function renderRec(){
   const r = loadRec();
-  const box = $("#recordsBox");
   const fmt = (v, suf="") => (v===null || v===undefined) ? "—" : (String(v)+suf);
-  box.innerHTML = `
+  $("#recordsBox").innerHTML = `
     <div class="rec"><div class="small">⚡ Реакция (лучшее)</div><div class="big">${fmt(r.reaction_best_ms," мс")}</div></div>
-    <div class="rec"><div class="small">🎯 Угадай число (минимум)</div><div class="big">${fmt(r.guess_best_tries," попыток")}</div></div>
+    <div class="rec"><div class="small">🎯 Угадай (минимум)</div><div class="big">${fmt(r.guess_best_tries," попыток")}</div></div>
     <div class="rec"><div class="small">🧠 Математика (макс.)</div><div class="big">${fmt(r.math_best_score,"")}</div></div>
-    <div class="rec"><div class="small">🖱️ Кликер 10с (макс.)</div><div class="big">${fmt(r.clicker_best,"")}</div></div>
+    <div class="rec"><div class="small">🖱️ Кликер (макс.)</div><div class="big">${fmt(r.clicker_best,"")}</div></div>
     <div class="rec"><div class="small">🧩 Память (мин. ходов)</div><div class="big">${fmt(r.memory_best_moves,"")}</div></div>
+    <div class="rec"><div class="small">🎮 2048 (очки)</div><div class="big">${fmt(r.g2048_best_score,"")}</div></div>
+    <div class="rec"><div class="small">🎮 2048 (плитка)</div><div class="big">${fmt(r.g2048_best_tile,"")}</div></div>
+    <div class="rec"><div class="small">🐍 Snake (лучший)</div><div class="big">${fmt(r.snake_best_score,"")}</div></div>
   `;
 }
 $("#clearRecords").onclick = () => {
@@ -277,6 +277,8 @@ function showHome(){
   $("#viewHome").classList.remove("hidden");
   $("#viewGame").classList.add("hidden");
   $("#gameRoot").innerHTML = "";
+  // убираем управление клавишами от игр
+  window.onkeydown = null;
 }
 function showGame(){
   $("#viewHome").classList.add("hidden");
@@ -294,11 +296,17 @@ $("#startBtn").onclick = () => { showGame(); mountGame(state.gameId); };
 function mountGame(id){
   const root = $("#gameRoot");
   root.innerHTML = "";
+  window.onkeydown = null;
+
   if(id === "reaction") return mountReaction(root);
   if(id === "guess") return mountGuess(root);
   if(id === "math") return mountMath(root);
   if(id === "clicker") return mountClicker(root);
   if(id === "memory") return mountMemory(root);
+  if(id === "rps") return mountRPS(root);
+  if(id === "g2048") return mount2048(root);
+  if(id === "snake") return mountSnake(root);
+
   root.innerHTML = `<p class="muted">Игра не найдена.</p>`;
 }
 
@@ -405,9 +413,7 @@ function mountGuess(root){
       if(rec.guess_best_tries===null || tries < rec.guess_best_tries){
         rec.guess_best_tries=tries; saveRec(rec); renderRec();
         info.innerHTML=`Попыток: <b>${tries}</b> — новый рекорд!`;
-      } else {
-        info.innerHTML=`Попыток: <b>${tries}</b>`;
-      }
+      } else info.innerHTML=`Попыток: <b>${tries}</b>`;
       toast("Победа!");
       return;
     }
@@ -465,10 +471,7 @@ function mountMath(root){
     }
     toast("Стоп");
   }
-  function tick(){
-    timeLeft--; tEl.textContent=timeLeft;
-    if(timeLeft<=0) stop();
-  }
+  function tick(){ timeLeft--; tEl.textContent=timeLeft; if(timeLeft<=0) stop(); }
   function start(){
     score=0; timeLeft=30;
     sEl.textContent=score; tEl.textContent=timeLeft;
@@ -526,20 +529,14 @@ function mountClicker(root){
     }
     toast("Готово!");
   }
-  function tick(){
-    timeLeft--; tEl.textContent=timeLeft;
-    if(timeLeft<=0) end();
-  }
+  function tick(){ timeLeft--; tEl.textContent=timeLeft; if(timeLeft<=0) end(); }
   function start(){
     score=0; timeLeft=10; running=true;
     sEl.textContent=score; tEl.textContent=timeLeft; info.textContent="";
     clearInterval(timer); timer=setInterval(tick,1000);
     toast("Старт!");
   }
-  tap.onclick=()=>{
-    if(!running){ toast("Нажми «Старт»"); return; }
-    score++; sEl.textContent=score;
-  };
+  tap.onclick=()=>{ if(!running){ toast("Нажми «Старт»"); return; } score++; sEl.textContent=score; };
   $("#cStart").onclick=start;
   $("#cStop").onclick=end;
 }
@@ -628,102 +625,441 @@ function mountMemory(root){
   render();
 }
 
+/* ===== Game: RPS ===== */
+function mountRPS(root){
+  $("#badgeGame").textContent = "✊✋✌ КНБ";
+  const choices = [
+    { id:"rock", label:"✊ Камень" },
+    { id:"paper", label:"✋ Бумага" },
+    { id:"scissors", label:"✌ Ножницы" }
+  ];
+  let wins=0, loses=0, draws=0;
+
+  root.innerHTML = `
+    <h2>✊✋✌ Камень-Ножницы-Бумага</h2>
+    <p class="muted">Выбирай ход. Компьютер выбирает случайно.</p>
+    <div class="card2" style="margin-top:12px">
+      <div class="row" id="rpsBtns"></div>
+      <div class="sep"></div>
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <div class="badge">Победы: <span id="rpsW">0</span></div>
+        <div class="badge">Поражения: <span id="rpsL">0</span></div>
+        <div class="badge">Ничьи: <span id="rpsD">0</span></div>
+      </div>
+      <div class="sep"></div>
+      <div class="big" id="rpsResult">Выбери ход</div>
+      <div class="small muted" id="rpsSub" style="margin-top:10px">—</div>
+      <div class="sep"></div>
+      <div class="row"><button class="btn secondary" id="rpsReset">Сбросить счёт</button></div>
+    </div>
+  `;
+
+  const btns=$("#rpsBtns");
+  const wEl=$("#rpsW"), lEl=$("#rpsL"), dEl=$("#rpsD");
+  const resEl=$("#rpsResult"), subEl=$("#rpsSub");
+
+  function cpuPick(){ return choices[Math.floor(Math.random()*choices.length)]; }
+  function judge(p,c){
+    if(p.id===c.id) return "draw";
+    if((p.id==="rock"&&c.id==="scissors")||(p.id==="paper"&&c.id==="rock")||(p.id==="scissors"&&c.id==="paper")) return "win";
+    return "lose";
+  }
+  function setScore(){ wEl.textContent=wins; lEl.textContent=loses; dEl.textContent=draws; }
+  function play(player){
+    const cpu=cpuPick();
+    const r=judge(player,cpu);
+    subEl.textContent = `Ты: ${player.label} • Комп: ${cpu.label}`;
+    if(r==="win"){ wins++; resEl.innerHTML=`<span class="good">Ты победил ✅</span>`; toast("Победа!"); }
+    else if(r==="lose"){ loses++; resEl.innerHTML=`<span class="bad">Ты проиграл ❌</span>`; toast("Проигрыш"); }
+    else { draws++; resEl.textContent="Ничья 🤝"; toast("Ничья"); }
+    setScore();
+  }
+
+  choices.forEach(c=>{
+    const b=document.createElement("button");
+    b.className="btn";
+    b.textContent=c.label;
+    b.onclick=()=>play(c);
+    btns.appendChild(b);
+  });
+
+  $("#rpsReset").onclick=()=>{ wins=loses=draws=0; setScore(); resEl.textContent="Выбери ход"; subEl.textContent="—"; toast("Сброшено"); };
+  setScore();
+}
+
+/* ===== Game: 2048 ===== */
+function mount2048(root){
+  $("#badgeGame").textContent = "🎮 2048";
+
+  let board = Array.from({length:4}, ()=>Array(4).fill(0));
+  let score = 0;
+
+  root.innerHTML = `
+    <h2>🎮 2048</h2>
+    <p class="muted">Свайпы или стрелки. Соединяй одинаковые числа.</p>
+    <div class="card2 g2048" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <div class="badge">Очки: <span id="s2048">0</span></div>
+        <div class="badge">Макс плитка: <span id="t2048">0</span></div>
+        <button class="btn secondary" id="n2048">Новая</button>
+      </div>
+      <div class="sep"></div>
+      <div class="g2048grid" id="grid2048"></div>
+      <div class="small muted" id="info2048" style="margin-top:10px">—</div>
+    </div>
+  `;
+
+  const grid = $("#grid2048");
+  const sEl = $("#s2048");
+  const tEl = $("#t2048");
+  const info = $("#info2048");
+
+  function emptyCells(){
+    const res=[];
+    for(let r=0;r<4;r++)for(let c=0;c<4;c++) if(board[r][c]===0) res.push([r,c]);
+    return res;
+  }
+  function addRandom(){
+    const empt = emptyCells();
+    if(!empt.length) return false;
+    const [r,c] = empt[Math.floor(Math.random()*empt.length)];
+    board[r][c] = Math.random()<0.9 ? 2 : 4;
+    return true;
+  }
+  function maxTile(){
+    let m=0; for(let r=0;r<4;r++)for(let c=0;c<4;c++) m=Math.max(m, board[r][c]);
+    return m;
+  }
+  function render(){
+    grid.innerHTML = "";
+    for(let r=0;r<4;r++){
+      for(let c=0;c<4;c++){
+        const v = board[r][c];
+        const d = document.createElement("div");
+        d.className = "t2048";
+        d.textContent = v ? v : "";
+        // небольшая “подсветка” от значения
+        const alpha = v ? Math.min(0.35, 0.06 + Math.log2(v)*0.03) : 0.05;
+        d.style.background = `rgba(106,169,255,${alpha})`;
+        grid.appendChild(d);
+      }
+    }
+    sEl.textContent = score;
+    tEl.textContent = maxTile();
+  }
+
+  function slideLine(line){
+    // line: [a,b,c,d]
+    const arr = line.filter(x=>x!==0);
+    let gained = 0;
+    for(let i=0;i<arr.length-1;i++){
+      if(arr[i]===arr[i+1]){
+        arr[i]*=2;
+        gained += arr[i];
+        arr.splice(i+1,1);
+      }
+    }
+    while(arr.length<4) arr.push(0);
+    return {line: arr, gained};
+  }
+
+  function move(dir){
+    // dir: "L","R","U","D"
+    let changed = false;
+    let gainedTotal = 0;
+
+    const before = JSON.stringify(board);
+
+    if(dir==="L"||dir==="R"){
+      for(let r=0;r<4;r++){
+        let line = board[r].slice();
+        if(dir==="R") line.reverse();
+        const out = slideLine(line);
+        let newLine = out.line;
+        if(dir==="R") newLine = newLine.reverse();
+        board[r] = newLine;
+        gainedTotal += out.gained;
+      }
+    } else {
+      for(let c=0;c<4;c++){
+        let line = [board[0][c],board[1][c],board[2][c],board[3][c]];
+        if(dir==="D") line.reverse();
+        const out = slideLine(line);
+        let newLine = out.line;
+        if(dir==="D") newLine = newLine.reverse();
+        for(let r=0;r<4;r++) board[r][c] = newLine[r];
+        gainedTotal += out.gained;
+      }
+    }
+
+    changed = (JSON.stringify(board) !== before);
+    if(!changed) return false;
+
+    score += gainedTotal;
+    addRandom();
+    render();
+
+    // record
+    const rec = loadRec();
+    const mt = maxTile();
+    let updated = false;
+    if(rec.g2048_best_score===null || score > rec.g2048_best_score){ rec.g2048_best_score = score; updated=true; }
+    if(rec.g2048_best_tile===null || mt > rec.g2048_best_tile){ rec.g2048_best_tile = mt; updated=true; }
+    if(updated){ saveRec(rec); renderRec(); }
+
+    if(isGameOver()){
+      info.innerHTML = `<span class="bad">Игра окончена.</span> Нажми “Новая”.`;
+      toast("2048: Game Over");
+    } else {
+      info.textContent = "—";
+    }
+    return true;
+  }
+
+  function canMove(){
+    if(emptyCells().length) return true;
+    for(let r=0;r<4;r++){
+      for(let c=0;c<4;c++){
+        const v=board[r][c];
+        if(r<3 && board[r+1][c]===v) return true;
+        if(c<3 && board[r][c+1]===v) return true;
+      }
+    }
+    return false;
+  }
+  function isGameOver(){ return !canMove(); }
+
+  function newGame(){
+    board = Array.from({length:4}, ()=>Array(4).fill(0));
+    score = 0;
+    addRandom(); addRandom();
+    render();
+    info.textContent = "Свайпай или жми стрелки";
+    toast("2048: Новая игра");
+  }
+
+  // keyboard
+  window.onkeydown = (e)=>{
+    const k=e.key;
+    if(k==="ArrowLeft") { e.preventDefault(); move("L"); }
+    else if(k==="ArrowRight") { e.preventDefault(); move("R"); }
+    else if(k==="ArrowUp") { e.preventDefault(); move("U"); }
+    else if(k==="ArrowDown") { e.preventDefault(); move("D"); }
+  };
+
+  // swipe
+  let sx=0, sy=0;
+  grid.addEventListener("touchstart",(e)=>{
+    const t=e.changedTouches[0];
+    sx=t.clientX; sy=t.clientY;
+  }, {passive:true});
+  grid.addEventListener("touchend",(e)=>{
+    const t=e.changedTouches[0];
+    const dx=t.clientX-sx, dy=t.clientY-sy;
+    const ax=Math.abs(dx), ay=Math.abs(dy);
+    if(Math.max(ax,ay) < 25) return;
+    if(ax>ay) move(dx>0 ? "R":"L");
+    else move(dy>0 ? "D":"U");
+  }, {passive:true});
+
+  $("#n2048").onclick = newGame;
+  newGame();
+}
+
+/* ===== Game: Snake ===== */
+function mountSnake(root){
+  $("#badgeGame").textContent = "🐍 Snake";
+
+  const size = 20;          // 20x20
+  const cell = 20;          // canvas pixels per cell
+  const speedMs = 120;      // скорость
+
+  let snake, dir, nextDir, food, score, timer, alive;
+
+  root.innerHTML = `
+    <h2>🐍 Snake</h2>
+    <p class="muted">Стрелки на клавиатуре или кнопки ниже. Ешь еду — растёшь.</p>
+    <div class="card2" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <div class="badge">Счёт: <span id="snScore">0</span></div>
+        <div class="badge">Рекорд: <span id="snBest">—</span></div>
+        <button class="btn secondary" id="snNew">Новая</button>
+        <button class="btn danger" id="snStop">Стоп</button>
+      </div>
+      <div class="sep"></div>
+      <canvas id="snCanvas" width="${size*cell}" height="${size*cell}"></canvas>
+
+      <div class="dpad">
+        <span></span>
+        <button class="btn secondary" id="snUp">↑</button>
+        <span></span>
+        <button class="btn secondary" id="snLeft">←</button>
+        <button class="btn secondary" id="snDown">↓</button>
+        <button class="btn secondary" id="snRight">→</button>
+      </div>
+
+      <div class="small muted" id="snInfo" style="margin-top:10px">—</div>
+    </div>
+  `;
+
+  const cvs = $("#snCanvas");
+  const ctx = cvs.getContext("2d");
+  const sEl = $("#snScore");
+  const bestEl = $("#snBest");
+  const info = $("#snInfo");
+
+  function randCell(){
+    return {x: Math.floor(Math.random()*size), y: Math.floor(Math.random()*size)};
+  }
+  function eq(a,b){ return a.x===b.x && a.y===b.y; }
+
+  function placeFood(){
+    while(true){
+      const f = randCell();
+      if(!snake.some(p=>eq(p,f))) { food=f; return; }
+    }
+  }
+
+  function setBest(){
+    const rec = loadRec();
+    bestEl.textContent = (rec.snake_best_score==null) ? "—" : rec.snake_best_score;
+  }
+
+  function reset(){
+    alive=true;
+    snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+    dir = {x:1,y:0};
+    nextDir = dir;
+    score = 0;
+    sEl.textContent = score;
+    info.textContent = "Играй!";
+    placeFood();
+    setBest();
+    draw();
+    startLoop();
+  }
+
+  function stop(){
+    alive=false;
+    clearInterval(timer); timer=null;
+    info.innerHTML = `<span class="bad">Стоп.</span> Нажми “Новая”.`;
+  }
+
+  function startLoop(){
+    clearInterval(timer);
+    timer = setInterval(tick, speedMs);
+  }
+
+  function changeDir(d){
+    // запрет разворота на 180°
+    if(d.x===-dir.x && d.y===-dir.y) return;
+    nextDir = d;
+  }
+
+  function tick(){
+    if(!alive) return;
+    dir = nextDir;
+
+    const head = snake[0];
+    const nh = {x: head.x + dir.x, y: head.y + dir.y};
+
+    // стены
+    if(nh.x<0||nh.y<0||nh.x>=size||nh.y>=size){ return gameOver(); }
+
+    // тело
+    if(snake.some(p=>eq(p,nh))){ return gameOver(); }
+
+    snake.unshift(nh);
+
+    if(eq(nh,food)){
+      score++;
+      sEl.textContent = score;
+      placeFood();
+    } else {
+      snake.pop();
+    }
+
+    draw();
+  }
+
+  function gameOver(){
+    alive=false;
+    clearInterval(timer); timer=null;
+
+    // record
+    const rec = loadRec();
+    if(rec.snake_best_score==null || score > rec.snake_best_score){
+      rec.snake_best_score = score;
+      saveRec(rec); renderRec();
+      info.innerHTML = `<span class="bad">Game Over.</span> <span class="good">Новый рекорд!</span>`;
+      toast("Snake: рекорд!");
+    } else {
+      info.innerHTML = `<span class="bad">Game Over.</span> Нажми “Новая”.`;
+      toast("Snake: Game Over");
+    }
+    setBest();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+
+    // сетка (легкая)
+    ctx.globalAlpha = 0.12;
+    for(let i=0;i<=size;i++){
+      ctx.beginPath(); ctx.moveTo(i*cell,0); ctx.lineTo(i*cell,size*cell); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,i*cell); ctx.lineTo(size*cell,i*cell); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // food
+    ctx.fillRect(food.x*cell+4, food.y*cell+4, cell-8, cell-8);
+
+    // snake
+    snake.forEach((p,idx)=>{
+      const pad = idx===0 ? 2 : 5;
+      ctx.fillRect(p.x*cell+pad, p.y*cell+pad, cell-pad*2, cell-pad*2);
+    });
+  }
+
+  // keyboard
+  window.onkeydown = (e)=>{
+    const k=e.key;
+    if(k==="ArrowUp") { e.preventDefault(); changeDir({x:0,y:-1}); }
+    else if(k==="ArrowDown") { e.preventDefault(); changeDir({x:0,y:1}); }
+    else if(k==="ArrowLeft") { e.preventDefault(); changeDir({x:-1,y:0}); }
+    else if(k==="ArrowRight") { e.preventDefault(); changeDir({x:1,y:0}); }
+  };
+
+  // buttons
+  $("#snUp").onclick=()=>changeDir({x:0,y:-1});
+  $("#snDown").onclick=()=>changeDir({x:0,y:1});
+  $("#snLeft").onclick=()=>changeDir({x:-1,y:0});
+  $("#snRight").onclick=()=>changeDir({x:1,y:0});
+  $("#snNew").onclick=reset;
+  $("#snStop").onclick=stop;
+
+  // swipe on canvas
+  let sx=0, sy=0;
+  cvs.addEventListener("touchstart",(e)=>{
+    const t=e.changedTouches[0];
+    sx=t.clientX; sy=t.clientY;
+  }, {passive:true});
+  cvs.addEventListener("touchend",(e)=>{
+    const t=e.changedTouches[0];
+    const dx=t.clientX-sx, dy=t.clientY-sy;
+    const ax=Math.abs(dx), ay=Math.abs(dy);
+    if(Math.max(ax,ay)<25) return;
+    if(ax>ay) changeDir(dx>0 ? {x:1,y:0}:{x:-1,y:0});
+    else changeDir(dy>0 ? {x:0,y:1}:{x:0,y:-1});
+  }, {passive:true});
+
+  reset();
+}
+
 /* init */
 renderRec();
 showHome();
 setActiveChip();
 </script>
-
-<!-- ===== OPTIONAL AUTH (Google / Apple) ===== -->
-<script type="module">
-  // Telegram user (для текста)
-  const tg = window.Telegram?.WebApp;
-  const tgUser = tg?.initDataUnsafe?.user;
-
-  // UI elements
-  const elStatus = document.getElementById("authStatus");
-  const elSub = document.getElementById("authSub");
-  const btnGoogle = document.getElementById("btnGoogle");
-  const btnApple = document.getElementById("btnApple");
-  const btnLogout = document.getElementById("btnLogout");
-
-  function setUI({ title, sub, loggedIn }) {
-    elStatus.textContent = title;
-    elSub.textContent = sub || "—";
-    btnLogout.style.display = loggedIn ? "" : "none";
-  }
-
-  // Базовый статус (до Firebase)
-  if (tgUser?.id) {
-    const name = tgUser.username ? "@"+tgUser.username : (tgUser.first_name || "Telegram user");
-    setUI({ title: `Telegram: ${name}`, sub: "Открыто внутри Telegram", loggedIn: false });
-  } else {
-    setUI({ title: "Гость", sub: "Можно войти (по желанию)", loggedIn: false });
-  }
-
-  // ======= ВСТАВЬ СЮДА firebaseConfig (когда захочешь) =======
-  const firebaseConfig = {
-    apiKey: "PASTE_HERE",
-    authDomain: "PASTE_HERE",
-    projectId: "PASTE_HERE",
-    appId: "PASTE_HERE"
-  };
-  const hasConfig = firebaseConfig.apiKey !== "PASTE_HERE";
-
-  if (!hasConfig) {
-    btnGoogle.disabled = true;
-    btnApple.disabled = true;
-    btnGoogle.textContent = "Google (настрой Firebase)";
-    btnApple.textContent = "iCloud (настрой Firebase)";
-    btnLogout.style.display = "none";
-    // Всё. Сайт работает, просто без входа.
-  } else {
-    // Firebase imports (работают только если config вставлен)
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import {
-      getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider,
-      OAuthProvider, signOut
-    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const name = user.displayName || user.email || "Пользователь";
-        setUI({ title: `Вход: ${name}`, sub: user.uid, loggedIn: true });
-      } else {
-        if (tgUser?.id) {
-          const name = tgUser.username ? "@"+tgUser.username : (tgUser.first_name || "Telegram user");
-          setUI({ title: `Telegram: ${name}`, sub: "Открыто внутри Telegram", loggedIn: false });
-        } else {
-          setUI({ title: "Гость", sub: "Можно войти (по желанию)", loggedIn: false });
-        }
-      }
-    });
-
-    btnGoogle.onclick = async () => {
-      try {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-      } catch (e) {
-        alert("Ошибка входа Google: " + (e?.message || e));
-      }
-    };
-
-    btnApple.onclick = async () => {
-      try {
-        const provider = new OAuthProvider("apple.com");
-        await signInWithPopup(auth, provider);
-      } catch (e) {
-        alert("Ошибка входа iCloud: " + (e?.message || e));
-      }
-    };
-
-    btnLogout.onclick = async () => {
-      try { await signOut(auth); } catch {}
-    };
-  }
-</script>
 </body>
-  </html>
+</html>
